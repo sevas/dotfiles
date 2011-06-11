@@ -1,0 +1,73 @@
+[ui]
+username=sevas  <f.degroef@gmail.com>
+
+ignore=/Users/sevas/Library/Application Support/TorusKnotSoftware/SourceTree/hgignore_default.txt
+[alias]
+addrm = addremove --similarity 100
+cglog = glog --style compact
+slog = log --style=/Users/sevas/build/mercurial-cli-templates/map-cmdline.slog
+nlog = log --style=/Users/sevas/build/mercurial-cli-templates/map-cmdline.nlog
+sglog = glog --style=/Users/sevas/build/mercurial-cli-templates/map-cmdline.sglog
+dlog = log --style=/Users/sevas/build/mercurial-cli-templates/map-cmdline.dlog
+
+
+[extensions]
+hgext.bookmarks =
+hggit = 
+hgk=
+color =
+hgext.extdiff = 
+graphlog = 
+progress = 
+rebase = 
+transplant=
+convert = 
+hgshelve = /Users/sevas/.hgext/hgshelve/hgshelve.py
+
+[bookmarks]
+track.current = True
+
+[extdiff]
+cmd.kdiff3 = /Applications/kdiff3.app/Contents/MacOS/kdiff3
+cmd.p4merge = /Applications/p4merge.app/Contents/MacOS/p4merge
+cmd.vdiff = /Users/sevas/bin/opendiff-w
+
+opts.sourcetreediff=-w
+cmd.sourcetreediff=/Applications/Kaleidoscope.app/Contents/MacOS/ksdiff
+
+cmd.ksdiff = /usr/local/bin/ksdiff-wrapper
+opts.ksdiff = hg
+
+[merge-tools]
+filemerge.priority = 80
+filemerge.executable = /Users/sevas/bin/opendiff-w
+filemerge.args = $local $other -ancestor $base -merge $output
+
+p4.priority = 90
+p4.premerge = True  # change this to False if you're don't trust hg's #internal merge
+p4.executable = /Applications/p4merge.app/Contents/MacOS/p4merge
+p4.gui = True
+p4.args = $base $local $other $output
+p5.binary = False
+
+kdiff3.priority = 100
+kdiff3.args = $base $local $other -o $output
+kdiff3.executable = /Applications/kdiff3.app/Contents/MacOS/kdiff3
+
+
+sourcetreemerge.gui=False
+sourcetreemerge.premerge=True
+sourcetreemerge.executable=/Applications/kdiff3.app/Contents/MacOS/kdiff3
+sourcetreemerge.args=$base $local $other -o $output
+sourcetreemerge.checkconflicts=True
+sourcetreemerge.binary=False
+sourcetreebulkmerge.executable=/Applications/SourceTree.app/Contents/Resources/hg-merge.sh
+sourcetreebulkmerge.premerge=False
+sourcetreebulkmerge.gui=False
+sourcetreebulkmerge.binary=True
+[hgk]
+path=~/bin/hgk
+
+[diff]
+git = True
+

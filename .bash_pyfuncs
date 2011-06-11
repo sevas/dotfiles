@@ -1,0 +1,27 @@
+export OLD_PATH=$PATH
+
+
+update_python_switchers()
+{
+    python $HOME/bin/update_python_switchers.py
+}
+
+
+if [ -f $HOME/.python_switchers.sh ] ; then
+    . $HOME/.python_switchers.sh
+else
+    update_python_switchers
+fi
+
+## virtualenvwrapper
+#export WORKON_HOME=$HOME/.virtualenvs
+source /Library/Frameworks/Python.framework/Versions/2.7/bin/virtualenvwrapper.sh
+
+
+
+
+## cd to module directory
+cdp() 
+{
+    cd "$(python -c "import os.path as _, ${1}; print _.dirname(_.realpath(${1}.__file__[:-1]))")"
+}
