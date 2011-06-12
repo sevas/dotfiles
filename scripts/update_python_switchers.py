@@ -30,7 +30,9 @@ def detect_macpython_installs():
     
 
 
-def generate_bash_select_func(framework_root, install_type, version):
+
+
+def generate_bash_select_func(framework_root, install_type, version, use_generic_prompt):
     values = {
         'framework_root'   : framework_root,
         'install_type'     : install_type,
@@ -39,7 +41,21 @@ def generate_bash_select_func(framework_root, install_type, version):
         'func_name'        : install_type.replace(" ", "_").lower()
         }
 
-    return """
+    if use_generic_prompt:
+        return """
+        select_{func_name}{stripped_version}()
+        {{
+            echo \"Setting environment for {install_type} {version}\"
+            PATH=\"{framework_root}/Versions/{version}/bin/:${{OLD_PATH}}\"
+            export PATH
+
+            export PS1="({install_type} {version}) \h:\W \u\$ "
+
+        }}
+                """.format(**values)
+        
+    else:
+        return """
 select_{func_name}{stripped_version}()
 {{
     echo \"Setting environment for {install_type} {version}\"
@@ -50,23 +66,30 @@ select_{func_name}{stripped_version}()
     $DEFAULT\n$ "
     
 }}
-    """.format(**values)
+        """.format(**values)
+
+        
 
 
 
-def generate_bash_select_functions(outfile, framework_root, install_type, versions):
+def generate_bash_select_functions(outfile, framework_root, install_type, versions, use_generic_prompt):
 
     for v in versions:
         print "Adding %s %s" % (install_type, v)
         bash_function = generate_bash_select_func(framework_root,
                                         install_type,
-                                        v)
+                                        v,
+                                        use_generic_prompt)
         outfile.write(bash_function)
 
 
 
 if __name__ == '__main__':
-
+    import argparse
+    parser = argparse.ArgumentParser(description='Detects all python installations and creates bash functions to switch between them')
+    parser.add_argument('--use_generic_prompt', type=bool, dest='use_generic_prompt', default=True, required=False, help='True (default): Use the default PS1 var False: Use a custom fancy prompt')
+    args = parser.parse_args()
+    
     outname = os.path.expandvars("$HOME/.python_switchers.sh")
     outfile = open(outname, 'w+')
 
@@ -76,21 +99,24 @@ if __name__ == '__main__':
     generate_bash_select_functions(outfile,
                                    SYSTEM_ROOT,
                                    "System Python",
-                                   system_versions)
+                                   system_versions,
+                                   args.use_generic_prompt)
 
 
     macpython_versions = detect_macpython_installs()
     generate_bash_select_functions(outfile,
                                    MACPYTHON_ROOT,
                                    "MacPython",
-                                   macpython_versions)
+                                   macpython_versions, 
+                                   args.use_generic_prompt)
 
 
     epd_versions = detect_epd_installs()
     generate_bash_select_functions(outfile,
                                    MACPYTHON_ROOT,
                                    "EPD",
-                                   epd_versions)
+                                   epd_versions,
+                                   args.use_generic_prompt)
 
     outfile.close()
     print "Saved python switcher bash functions to %s" % outname
