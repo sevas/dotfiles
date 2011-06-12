@@ -3,7 +3,7 @@ export OLD_PATH=$PATH
 
 update_python_switchers()
 {
-    python $HOME/bin/update_python_switchers.py
+    python $HOME/bin/update_python_switchers.py --use_generic_prompt=False
 }
 
 
