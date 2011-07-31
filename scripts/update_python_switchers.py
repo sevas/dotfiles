@@ -6,6 +6,7 @@ import os
 
 SYSTEM_ROOT = "/System/Library/Frameworks/Python.framework" 
 MACPYTHON_ROOT = "/Library/Frameworks/Python.framework"
+EPD64_ROOT = "/Library/Frameworks/EPD64.framework"
 
 def detect_python_versions(python_framework_root):
     versions = os.listdir(python_framework_root + "/Versions/")
@@ -19,9 +20,33 @@ def detect_system_python_installs():
     return detect_python_versions(root)
 
 
-def detect_epd_installs():
+def detect_epd32_installs():
     root = MACPYTHON_ROOT
-    return [v for v in detect_python_versions(root) if v.startswith('6')]
+    
+    def is_epd_version(version):
+        """
+        Detects whether a version string is an EPD version 
+        number or a regular python version number.
+        
+        This works because EPD starts with much higher version 
+        numbers (6.x, 7.x, ...) nowadays
+        """
+        def get_major_version(v): 
+            return int(v.split('.')[0])
+            
+        # EPD versions don't start with 2.x or 3.x
+        return get_major_version(version) not in [2, 3]
+    
+    epd_versions = [v for v in detect_python_versions(root) if is_epd_version(v)]
+    return epd_versions 
+    
+    
+    
+def detect_epd64_installs():
+    directories = os.listdir(os.path.join(EPD64_ROOT, "Versions"))
+    versions = [v for v in directories if v != 'Current']
+    
+    return versions
 
 
 def detect_macpython_installs():
@@ -43,7 +68,7 @@ def generate_bash_select_func(framework_root, install_type, version, use_fancy_p
 
     if use_fancy_prompt:
         return """
-        select_{func_name}{stripped_version}()
+        select_{func_name}_{stripped_version}()
         {{
             echo \"Setting environment for {install_type} {version}\"
             PATH=\"{framework_root}/Versions/{version}/bin/:${{OLD_PATH}}\"
@@ -56,7 +81,7 @@ def generate_bash_select_func(framework_root, install_type, version, use_fancy_p
                 """.format(**values)
     else:
         return """
-        select_{func_name}{stripped_version}()
+        select_{func_name}_{stripped_version}()
         {{
             echo \"Setting environment for {install_type} {version}\"
             PATH=\"{framework_root}/Versions/{version}/bin/:${{OLD_PATH}}\"
@@ -114,12 +139,22 @@ if __name__ == '__main__':
                                    args.use_fancy_prompt)
 
 
-    epd_versions = detect_epd_installs()
+    epd32_versions = detect_epd32_installs()
     generate_bash_select_functions(outfile,
                                    MACPYTHON_ROOT,
-                                   "EPD",
-                                   epd_versions,
+                                   "EPD 32",
+                                   epd32_versions,
                                    args.use_fancy_prompt)
+
+
+    epd64_versions = detect_epd64_installs()
+    generate_bash_select_functions(outfile,
+                                    EPD64_ROOT,
+                                    "EPD 64",
+                                    epd64_versions,
+                                    args.use_fancy_prompt)
+
+
 
     outfile.close()
     print "Saved python switcher bash functions to %s" % outname
