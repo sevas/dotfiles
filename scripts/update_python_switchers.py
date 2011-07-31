@@ -20,23 +20,25 @@ def detect_system_python_installs():
     return detect_python_versions(root)
 
 
+
+def is_epd_version(version):
+    """
+    Detects whether a version string is an EPD version 
+    number or a regular python version number.
+    
+    This works because EPD starts with much higher version 
+    numbers (6.x, 7.x, ...) nowadays
+    """
+    def get_major_version(v): 
+        return int(v.split('.')[0])
+            
+    # EPD versions don't start with 2.x or 3.x
+    return get_major_version(version) not in [2, 3]
+
+
 def detect_epd32_installs():
     root = MACPYTHON_ROOT
-    
-    def is_epd_version(version):
-        """
-        Detects whether a version string is an EPD version 
-        number or a regular python version number.
         
-        This works because EPD starts with much higher version 
-        numbers (6.x, 7.x, ...) nowadays
-        """
-        def get_major_version(v): 
-            return int(v.split('.')[0])
-            
-        # EPD versions don't start with 2.x or 3.x
-        return get_major_version(version) not in [2, 3]
-    
     epd_versions = [v for v in detect_python_versions(root) if is_epd_version(v)]
     return epd_versions 
     
@@ -51,7 +53,7 @@ def detect_epd64_installs():
 
 def detect_macpython_installs():
     root = MACPYTHON_ROOT
-    return [v for v in detect_python_versions(root) if not v.startswith('6')]
+    return [v for v in detect_python_versions(root) if not is_epd_version(v)]
     
 
 
