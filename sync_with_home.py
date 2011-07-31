@@ -62,7 +62,7 @@ if __name__=="__main__":
     
     if args.sync_mode == "to home":
         copy_dotfiles_to_home()
-        copy_scripts_from_home()
+        copy_scripts_to_home()
         
     elif args.sync_mode == "from home":
         copy_dotfiles_from_home()
