@@ -3,7 +3,7 @@ export OLD_PATH=$PATH
 
 update_python_switchers()
 {
-    python $HOME/bin/update_python_switchers.py --use_generic_prompt=False
+    python $HOME/bin/update_python_switchers.py --use-fancy-prompt
 }
 
 
@@ -14,8 +14,14 @@ else
 fi
 
 ## virtualenvwrapper
+if [ $USER == sevas ]; then
+    export WORKON_HOME=$HOME/.virtualenvs
+    source /usr/local/bin/virtualenvwrapper.sh
+    export TMPDIR=/tmp
+fi
+
 #export WORKON_HOME=$HOME/.virtualenvs
-source /Library/Frameworks/Python.framework/Versions/2.7/bin/virtualenvwrapper.sh
+#source /Library/Frameworks/Python.framework/Versions/2.7/bin/virtualenvwrapper.sh
 
 
 

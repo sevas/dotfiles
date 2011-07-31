@@ -191,14 +191,14 @@ fi
 
 # load python-related functions
 if [ -f ~/.bash_pyfuncs ]; then
-  . ~/.bash_pyfuncs
+  source ~/.bash_pyfuncs
 fi
 
 # git completion
-source /usr/local/git/contrib/completion/git-completion.bash
+#source /usr/local/git/contrib/completion/git-completion.bash
 
 # mercurial completion
-source ~/.hg17_bash_completion.sh 
+#source ~/.hg17_bash_completion.sh 
 
 
 
@@ -209,8 +209,8 @@ export DYLD_LIBRARY_PATH="/usr/local/ITK-3.20-i386/lib/InsightToolkit"
 
 # Setting PATH for Python 2.7
 # The orginal version is saved in .bash_profile.pysave
-PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:${PATH}"
-export PATH
+#PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:${PATH}"
+#export PATH
 
 
 # haskell
@@ -227,4 +227,19 @@ export PATH=/opt/local/bin:/opt/local/sbin:$PATH
 
 
 
-select_epd63
+select_system_python_27
+
+# Setting PATH for EPD-7.1-1
+# The orginal version is saved in .bash_profile.pysave
+#PATH="/Library/Frameworks/EPD64.framework/Versions/Current/bin:${PATH}"
+#export PATH
+
+# Setting PATH for EPD-7.1-1
+# The orginal version is saved in .bash_profile.pysave
+#PATH="/Library/Frameworks/Python.framework/Versions/Current/bin:${PATH}"
+#export PATH
+
+
+export ARCHFLAGS="-arch i386 –arch x86_64"
+ 
+ 
