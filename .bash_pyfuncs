@@ -15,9 +15,9 @@ fi
 
 ## virtualenvwrapper
 if [ $USER == sevas ]; then
+    export TMPDIR=/tmp
     export WORKON_HOME=$HOME/.virtualenvs
     source /usr/local/bin/virtualenvwrapper.sh
-    export TMPDIR=/tmp
 fi
 
 #export WORKON_HOME=$HOME/.virtualenvs
