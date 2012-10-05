@@ -221,25 +221,32 @@ export PATH
 # Your previous /Users/sevas/.bash_profile file was backed up as /Users/sevas/.bash_profile.macports-saved_2011-01-18_at_21:27:17
 ##
 
-# MacPorts Installer addition on 2011-01-18_at_21:27:17: adding an appropriate PATH variable for use with MacPorts.
-export PATH=/opt/local/bin:/opt/local/sbin:$PATH
-# Finished adapting your PATH environment variable for use with MacPorts.
+
 
 
 
 select_system_python_27
 
-# Setting PATH for EPD-7.1-1
-# The orginal version is saved in .bash_profile.pysave
-#PATH="/Library/Frameworks/EPD64.framework/Versions/Current/bin:${PATH}"
-#export PATH
-
-# Setting PATH for EPD-7.1-1
-# The orginal version is saved in .bash_profile.pysave
-#PATH="/Library/Frameworks/Python.framework/Versions/Current/bin:${PATH}"
-#export PATH
 
 
-export ARCHFLAGS="-arch i386 –arch x86_64"
+#export ARCHFLAGS="-arch i386 –arch x86_64"
+
+export PATH="$PATH:/usr/local/sbin/"
+
+#. `brew --prefix`/etc/profile.d/z.sh
  
+
+function server() {
+	local port="${1:-8000}"
+	open "http://localhost:${port}/"
+	python -m SimpleHTTPServer "$port"
+}
+
+
+alias lt='tree --dirsfirst -ChFL 1'
+alias lt2='tree --dirsfirst -ChFL 2'
+alias lt3='tree --dirsfirst -ChFL 3' 
+alias lt4='tree --dirsfirst -ChFL 4'
  
+
+

@@ -3,7 +3,7 @@ import shutil
 import os.path
 
 
-dotfiles = [".bash_profile", ".bash_pyfuncs", ".inputrc", ".pythonrc.py"]
+dotfiles = [".bash_profile", ".bash_pyfuncs", ".inputrc", ".pythonrc.py", ".gitconfig", ".zshrc"]
 scripts = ["update_python_switchers.py"]
 
 
@@ -46,24 +46,24 @@ def copy_dotfiles_to_home():
 def copy_scripts_to_home():
     bin_dir = get_bin_dir()
     copy_files("./scripts", bin_dir, scripts)
-    
+
 
 
 
 if __name__=="__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--sync", choices=["to home", "from home"], 
+    parser.add_argument("--sync", choices=["to home", "from home"],
                         required=True, dest="sync_mode" )
-    
-    
+
+
     args = parser.parse_args()
-    
+
     if args.sync_mode == "to home":
         copy_dotfiles_to_home()
         copy_scripts_to_home()
-        
+
     elif args.sync_mode == "from home":
         copy_dotfiles_from_home()
         copy_scripts_from_home()

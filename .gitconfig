@@ -1,0 +1,47 @@
+[difftool "sourcetree"]
+	cmd = /Applications/Kaleidoscope.app/Contents/MacOS/ksdiff -w \"$LOCAL\" \"$REMOTE\"
+	path =
+
+[mergetool "sourcetree"]
+	cmd = /Applications/SourceTree.app/Contents/Resources/araxisgitmerge-w.sh \"$REMOTE\" \"$BASE\" \"$LOCAL\" \"$MERGED\"
+	trustExitCode = true
+
+[user]
+	name = sevas
+	email = f.degroef@gmail.com
+
+[core]
+	excludesfile = /Users/sevas/Library/Application Support/TorusKnotSoftware/SourceTree/gitignore_default.txt
+	quotepath = false
+
+[difftool "Kaleidoscope"]
+	cmd = ksdiff-wrapper git \"$LOCAL\" \"$REMOTE\"
+
+[difftool]
+	prompt = false
+
+[diff]
+	tool = Kaleidoscope
+
+
+
+[color]
+  branch = auto
+  diff = auto
+  status = auto
+
+[color "branch"]
+  current = yellow reverse
+  local = yellow
+  remote = green
+
+[color "diff"]
+  meta = yellow bold
+  frag = magenta bold
+  old = red bold
+  new = green bold
+
+[color "status"]
+  added = yellow
+  changed = green
+  untracked = cyan
