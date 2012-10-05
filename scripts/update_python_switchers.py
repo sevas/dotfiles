@@ -67,7 +67,7 @@ def generate_bash_select_func(framework_root, install_type, version):
         select_{func_name}_{stripped_version}()
         {{
             echo \"Setting environment for {install_type} {version}\"
-            PATH=\"{framework_root}/Versions/{version}/bin/:${{OLD_PATH}}\"
+            PATH=\"{framework_root}/Versions/{version}/bin:${{OLD_PATH}}\"
             export PATH
             export PROMPT_PYTHON_VERSION="{install_type} {version}"
 
