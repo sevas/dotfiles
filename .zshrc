@@ -1,3 +1,8 @@
+
+# Customize to your needs...
+export PATH="/Users/sevas/bin/:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin"
+
+
 VIRTUAL_ENV_DISABLE_PROMPT=1
 export OLD_PATH=$PATH
 source $HOME/.python_switchers.sh
@@ -35,8 +40,5 @@ source $ZSH/oh-my-zsh.sh
 
 
 
-
-# Customize to your needs...
-export PATH=/Users/sevas/bin:/Users/sevas/bin/:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin/
 
 select_epd_64_72
