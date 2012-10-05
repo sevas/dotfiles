@@ -1,6 +1,6 @@
 
 # Customize to your needs...
-export PATH="/Users/sevas/bin/:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/sbin"
+export PATH="/Users/sevas/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 
 VIRTUAL_ENV_DISABLE_PROMPT=1
@@ -39,6 +39,11 @@ plugins=(git virtualenvwrapper pip django brew github osx git-flow gem)
 source $ZSH/oh-my-zsh.sh
 
 
-
-
 select_epd_64_72
+
+
+
+
+#cdp {
+#    cd "$(python -c "import os.path as _, ${1}; print _.dirname(_.realpath(${1}.__file__[:-1]))")"
+#}
