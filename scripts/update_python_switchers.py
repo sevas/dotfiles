@@ -10,8 +10,16 @@ EPD64_ROOT = "/Library/Frameworks/EPD64.framework"
 
 
 def detect_python_versions(python_framework_root):
+    def not_empty(version_directory_name):
+        full_version_path = os.path.join(python_framework_root, 'Versions', version_directory_name, 'bin')
+        if os.path.exists(full_version_path):
+            return True
+        else:
+            print("!!! Missing bin/ directory under '{0}'. This installation looks broken. Skipping {1}".format(full_version_path, version_directory_name))
+            return False
+
     versions = os.listdir(python_framework_root + "/Versions/")
-    versions = [v for v in versions if v != 'Current']
+    versions = [v for v in versions if v != 'Current' and not_empty(v)]
     return versions
 
 
@@ -75,16 +83,12 @@ def generate_bash_select_func(framework_root, install_type, version):
                 """.format(**values)
 
 
-
 def generate_bash_select_functions(outfile, framework_root, install_type, versions):
 
     for v in versions:
-        print "Adding %s %s" % (install_type, v)
-        bash_function = generate_bash_select_func(framework_root,
-                                        install_type,
-                                        v)
+        print("+++ Adding %s %s" % (install_type, v))
+        bash_function = generate_bash_select_func(framework_root, install_type, v)
         outfile.write(bash_function)
-
 
 
 if __name__ == '__main__':
@@ -93,37 +97,31 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     outname = os.path.expandvars("$HOME/.python_switchers.sh")
-    outfile = open(outname, 'w+')
 
-    system_versions = detect_system_python_installs()
-    generate_bash_select_functions(outfile,
-                                   SYSTEM_ROOT,
-                                   "System Python",
-                                   system_versions)
+    with open(outname, 'w+') as outfile:
+        system_versions = detect_system_python_installs()
+        generate_bash_select_functions(outfile,
+                                       SYSTEM_ROOT,
+                                       "System Python",
+                                       system_versions)
 
+        macpython_versions = detect_macpython_installs()
+        generate_bash_select_functions(outfile,
+                                       MACPYTHON_ROOT,
+                                       "MacPython",
+                                       macpython_versions)
 
-    macpython_versions = detect_macpython_installs()
-    generate_bash_select_functions(outfile,
-                                   MACPYTHON_ROOT,
-                                   "MacPython",
-                                   macpython_versions)
+        epd32_versions = detect_epd32_installs()
+        generate_bash_select_functions(outfile,
+                                       MACPYTHON_ROOT,
+                                       "EPD 32",
+                                       epd32_versions)
 
+        epd64_versions = detect_epd64_installs()
+        generate_bash_select_functions(outfile,
+                                       EPD64_ROOT,
+                                       "EPD 64",
+                                       epd64_versions)
 
-    epd32_versions = detect_epd32_installs()
-    generate_bash_select_functions(outfile,
-                                   MACPYTHON_ROOT,
-                                   "EPD 32",
-                                   epd32_versions)
-
-
-    epd64_versions = detect_epd64_installs()
-    generate_bash_select_functions(outfile,
-                                    EPD64_ROOT,
-                                    "EPD 64",
-                                    epd64_versions)
-
-
-
-    outfile.close()
-    print "Saved python switcher bash functions to %s" % outname
+        print "Saved python switcher bash functions to %s" % outname
 

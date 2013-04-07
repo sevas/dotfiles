@@ -1,7 +1,7 @@
-
+export PYTHONIOENCODING=utf-8  
 # Customize to your needs...
 export PATH="/Users/sevas/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
-
+export DISABLE_AUTO_UPDATE="true"
 
 VIRTUAL_ENV_DISABLE_PROMPT=1
 export OLD_PATH=$PATH
