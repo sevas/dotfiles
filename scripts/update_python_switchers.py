@@ -2,11 +2,43 @@
 
 
 import os
-
+import sys
+import platform
+import subprocess
 
 SYSTEM_ROOT = "/System/Library/Frameworks/Python.framework"
 MACPYTHON_ROOT = "/Library/Frameworks/Python.framework"
 EPD64_ROOT = "/Library/Frameworks/EPD64.framework"
+
+
+
+def get_python_version(python_root):
+    python_filepath = os.path.join(python_root, 'bin', 'python')
+    p = subprocess.Popen([python_filepath, '-V'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stderr.strip()
+
+
+def has_python(prefix):
+    python_filepath = os.path.join(prefix, 'bin', 'python')
+    if os.path.exists(python_filepath):
+        return True
+
+
+def get_anaconda_version(python_version):
+    return [e.strip() for e in python_version.split("::") if e]
+
+
+def detect_anaconda_installs():
+    p = subprocess.Popen(['locate', 'bin/conda'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    results = stdout.split("\n")
+
+    if not results:
+        return []
+
+    prefixes = [each.split('bin/conda')[0] for each in results if each and 'pkgs' not in each]
+    return prefixes
 
 
 def detect_python_versions(python_framework_root):
@@ -62,9 +94,13 @@ def detect_macpython_installs():
     return [v for v in detect_python_versions(root) if not is_epd_version(v)]
 
 
+
+def make_python_dir(framework_root, version):
+    return os.path.join(framework_root, 'Versions', version, 'bin')
+
 def generate_bash_select_func(framework_root, install_type, version):
     values = {
-        'framework_root':   framework_root,
+        'path':             make_python_dir(framework_root, version),
         'install_type':     install_type,
         'version':          version,
         'stripped_version': version.replace(".", ""),
@@ -75,7 +111,7 @@ def generate_bash_select_func(framework_root, install_type, version):
         select_{func_name}_{stripped_version}()
         {{
             echo \"Setting environment for {install_type} {version}\"
-            PATH=\"{framework_root}/Versions/{version}/bin:${{OLD_PATH}}\"
+            PATH=\"{path}:${{OLD_PATH}}\"
             export PATH
             export PROMPT_PYTHON_VERSION="{install_type} {version}"
 
@@ -83,10 +119,33 @@ def generate_bash_select_func(framework_root, install_type, version):
                 """.format(**values)
 
 
-def generate_bash_select_functions(outfile, framework_root, install_type, versions):
+def generate_anaconda_bash_select_func(framework_root):
+    py_version = get_python_version(framework_root)
+    py, anaconda_version_string = get_anaconda_version(py_version)
+    name, version, arch = anaconda_version_string.split(" ")
 
+    values = {
+        'path':             os.path.join(framework_root, 'bin'),
+        'install_type':     name,
+        'version':          version+arch,
+        'stripped_version': version.replace(".", ""),
+        'func_name':        name.replace(" ", "_").lower()
+    }
+
+    return """
+        select_{func_name}_{stripped_version}()
+        {{
+            echo \"Setting environment for {install_type} {version}\"
+            PATH=\"{path}:${{OLD_PATH}}\"
+            export PATH
+            export PROMPT_PYTHON_VERSION="{install_type} {version}"
+
+        }}
+                """.format(**values), anaconda_version_string
+
+def generate_bash_select_functions(outfile, framework_root, install_type, versions):
     for v in versions:
-        print("+++ Adding %s %s" % (install_type, v))
+        print("+++ Adding {:<40} [{}]".format(install_type+" "+v, make_python_dir(framework_root, v)))
         bash_function = generate_bash_select_func(framework_root, install_type, v)
         outfile.write(bash_function)
 
@@ -123,5 +182,10 @@ if __name__ == '__main__':
                                        "EPD 64",
                                        epd64_versions)
 
-        print "Saved python switcher bash functions to %s" % outname
+        for anaconda_root in detect_anaconda_installs():
+            bash_func, version = generate_anaconda_bash_select_func(anaconda_root)
+            print("+++ Adding {:<40} [{}]".format(version, anaconda_root))
+            outfile.write(bash_func)
+
+        print "--- Saved python switcher bash functions to %s" % outname
 
