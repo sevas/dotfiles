@@ -1,191 +1,260 @@
 #!/usr/bin/env python
+"""
+What is this?
+-------------
 
+This program detects all the python executables installed on a unix system,
+and creates a shell script with shell functions to switch between them.
+
+Every generated function will follow this pattern:
+
+.. code:: shell
+
+    select_macpython_271()
+    {
+        echo "Setting environment for Python 2.7.1 -- MacPython"
+        export PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:${OLD_PATH}"
+        export PROMPT_PYTHON_VERSION="MacPython 2.7.1"
+    }
+
+
+That's it. It just monkeypatches the PATH variable. Additionally, you can use
+the content of PROMPT_PYTHON_VERSION in your PS1 variable.
+
+By default, these selector functions will be saved to $HOME/.python_switchers.sh.
+
+You will need to add the following lines to your shell initialization file.
+On MacOS X systems, use $HOME/.bash_profile for bash, and $HOME/.zshrc for zsh.
+
+.. code:: shell
+
+    VIRTUAL_ENV_DISABLE_PROMPT=1
+    export OLD_PATH=$PATH
+    source $HOME/.python_switchers.sh
+
+    # Setup the default python. update_python_switchers.py must have been
+    # called at least once, and this function must have been defined in
+    # the generated .python_switchers.sh file.
+    select_macpython_271
+
+This thing was not tested with any other shell. I intend to make it work with
+the fish shell though.
+
+
+What are these python variants?
+-------------------------------
+
+I identified the following python distributions:
+
+- System python : the python installed with the OS.
+- MacPython: Obviously only for Mac OS X. A python installed from
+  python.org.
+- EPD: The Enthought Python Distribution. A python distribution dedicated to
+  scientific computing with a lot of pre-built packages. See
+  https://www.enthought.com/products/epd/
+- Anaconda: A python distribution dedicated to scientific computing with a lot
+  of pre-built packages. See https://store.continuum.io/cshop/anaconda/
+
+
+It is possible that other flavours exist.
+
+This program will ignore all the pythons that seem to be part of a virtualenv.
+Use the --excluded-patterns flag if you with to blacklist even more pythons.
+
+
+Is there more?
+--------------
+
+Not much. Just try and run this program with --help.
+
+
+License
+-------
+
+This program is licensed under the WTFPL license. See copying.txt for details.
+
+"""
+__version__ = '1.0'
 
 import os
-import sys
-import platform
 import subprocess
+import re
+import string
 
 SYSTEM_ROOT = "/System/Library/Frameworks/Python.framework"
 MACPYTHON_ROOT = "/Library/Frameworks/Python.framework"
-EPD64_ROOT = "/Library/Frameworks/EPD64.framework"
 
 
-
-def get_python_version(python_root):
-    python_filepath = os.path.join(python_root, 'bin', 'python')
-    p = subprocess.Popen([python_filepath, '-V'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
+def get_python_version(python_filepath):
+    "Gets the version string of an installed python, using the -V flag"
+    process = subprocess.Popen([python_filepath, '-V'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    _, stderr = process.communicate()
     return stderr.strip()
 
 
-def has_python(prefix):
-    python_filepath = os.path.join(prefix, 'bin', 'python')
-    if os.path.exists(python_filepath):
-        return True
+def generate_bash_select_func(python_filepath, version_string, prompt_string, bash_function_name):
+    """Generates a shell function to monkeypatch the PATH variable and put
+       a particular python as the default one.
+    """
+    values = {
+        'path':            os.path.dirname(python_filepath),
+        'version_string':  version_string,
+        'prompt_string':   prompt_string,
+        'bash_func_name':  bash_func_name
+    }
+
+    return """\
+select_{bash_func_name}()
+{{
+    echo \"Setting environment for {version_string}\"
+    export PATH=\"{path}:${{OLD_PATH}}\"
+    export PROMPT_PYTHON_VERSION="{prompt_string}"
+}}
+
+""".format(**values)
 
 
-def get_anaconda_version(python_version):
-    return [e.strip() for e in python_version.split("::") if e]
+def is_python_filepath(filepath):
+    """Checks if a filepath corresponds to a python binary.
+
+    >>> is_python_filepath("/usr/bin/python")
+    True
+
+    >>> is_python_filepath("/usr/bin/python3")
+    True
+
+    >>> is_python_filepath("/home/aneiko/python_projects/macx")
+    False
+    """
+    return filepath.endswith("bin/python") or filepath.endswith("bin/python3")
 
 
-def detect_anaconda_installs():
-    p = subprocess.Popen(['locate', 'bin/conda'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+def is_python_executable(filepath, excluded_patterns):
+    """Checks that a filepath is a python executable and that it does not match
+       a list of patterns.
+
+    Parameters
+    ----------
+    filepath: str
+    excluded_patterns: list of strings
+        List of regexps for paths to ignore
+
+
+    Examples
+    --------
+    >>> is_python_executable("/usr/bin/python", [])
+    True
+
+    >>> is_python_executable("/usr/bin/python", ["/usr/.*"])
+    False
+
+    >>> is_python_executable("/home/aneiko/.virtualenvs/django_sandbox/bin/python", [])
+    True
+
+    >>> is_python_executable("/home/aneiko/.virtualenvs/django_sandbox/bin/python", [".*virtualenv.*"])
+    False
+    """
+
+    if not is_python_filepath(filepath):
+        return False
+
+    for pattern in excluded_patterns:
+        if re.match(pattern, filepath):
+            return False
+    return True
+
+
+def detect_all_python_installs(excluded_patterns):
+    """Detects all the python installed on a Unix system. Filters out those who match given patterns"""
+    p = subprocess.Popen(['locate', 'bin/python'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     results = stdout.split("\n")
 
-    if not results:
-        return []
-
-    prefixes = [each.split('bin/conda')[0] for each in results if each and 'pkgs' not in each]
-    return prefixes
+    return [each for each in results if is_python_executable(each, excluded_patterns)]
 
 
-def detect_python_versions(python_framework_root):
-    def not_empty(version_directory_name):
-        full_version_path = os.path.join(python_framework_root, 'Versions', version_directory_name, 'bin')
-        if os.path.exists(full_version_path):
-            return True
-        else:
-            print("!!! Missing bin/ directory under '{0}'. This installation looks broken. Skipping {1}".format(full_version_path, version_directory_name))
-            return False
+def make_bash_func_string(s):
+    """Transforms a string into something suitable for a shell function. Removes or replace forbidden characters"""
+    bash_func_name = string.translate(s, None, ':.()[]{}').lower()
 
-    versions = os.listdir(python_framework_root + "/Versions/")
-    versions = [v for v in versions if v != 'Current' and not_empty(v)]
-    return versions
+    for forbidden_char in ' -':
+        bash_func_name = bash_func_name.replace(forbidden_char, "_")
+
+    return bash_func_name
 
 
-def detect_system_python_installs():
-    root = SYSTEM_ROOT
-    return detect_python_versions(root)
-
-
-def is_epd_version(version):
+def make_short_strings(version_string):
     """
-    Detects whether a version string is an EPD version
-    number or a regular python version number.
 
-    This works because EPD starts with much higher version
-    numbers (6.x, 7.x, ...) nowadays
+    >>> make_short_strings('Python 2.7.2 -- EPD 7.2-2 (64-bit)')
+    ('EPD 7.2-2 (64-bit)', 'epd_72_2_64_bit')
+
+    >>> make_short_strings('Python 2.7.1 -- MacPython')
+    ('MacPython 2.7.1', 'macpython_271')
+
+    >>> make_short_strings('Python 2.7.5 :: Anaconda 1.6.1 (x86_64)')
+    ('Anaconda 1.6.1 (x86_64)', 'anaconda_161_x86_64')
     """
-    def get_major_version(v):
-        return int(v.split('.')[0])
 
-    # EPD versions don't start with 2.x or 3.x
-    return get_major_version(version) not in [2, 3]
+    if "-- EPD" in version_string:
+        epd_version = version_string.split('--')[1].strip()
+        return epd_version, make_bash_func_string(epd_version)
 
+    if "Anaconda" in version_string:
+        anaconda_version = version_string.split('::')[1].strip()
+        return anaconda_version, make_bash_func_string(anaconda_version)
 
-def detect_epd32_installs():
-    root = MACPYTHON_ROOT
+    if "MacPython" in version_string:
+        python_version =  version_string.split("--")[0].split("Python")[1].strip()
+        macpython_version = "MacPython " + python_version
+        return macpython_version, make_bash_func_string(macpython_version)
 
-    epd_versions = [v for v in detect_python_versions(root) if is_epd_version(v)]
-    return epd_versions
+    if "System" in version_string:
+        return version_string, make_bash_func_string(version_string)
 
-
-def detect_epd64_installs():
-    directories = os.listdir(os.path.join(EPD64_ROOT, "Versions"))
-    versions = [v for v in directories if v != 'Current']
-
-    return versions
-
-
-def detect_macpython_installs():
-    root = MACPYTHON_ROOT
-    return [v for v in detect_python_versions(root) if not is_epd_version(v)]
+    return version_string, make_bash_func_string(version_string)
 
 
+def make_version_strings(python_filepath):
+    version_string = get_python_version(p)
 
-def make_python_dir(framework_root, version):
-    return os.path.join(framework_root, 'Versions', version, 'bin')
+    if python_filepath.startswith(MACPYTHON_ROOT):
+        version_string += " -- MacPython"
+        short_version_string, bash_func_name =  make_short_strings(version_string)
+        return version_string, short_version_string, bash_func_name
 
-def generate_bash_select_func(framework_root, install_type, version):
-    values = {
-        'path':             make_python_dir(framework_root, version),
-        'install_type':     install_type,
-        'version':          version,
-        'stripped_version': version.replace(".", ""),
-        'func_name':        install_type.replace(" ", "_").lower()
-    }
+    elif python_filepath.startswith(SYSTEM_ROOT) or python_filepath.startswith('/usr'):
+        version_string = "System " + version_string
+        short_version_string, bash_func_name = make_short_strings(version_string)
+        return version_string, short_version_string, bash_func_name
 
-    return """
-        select_{func_name}_{stripped_version}()
-        {{
-            echo \"Setting environment for {install_type} {version}\"
-            PATH=\"{path}:${{OLD_PATH}}\"
-            export PATH
-            export PROMPT_PYTHON_VERSION="{install_type} {version}"
-
-        }}
-                """.format(**values)
+    else:
+        short_version_string, bash_func_name = make_short_strings(version_string)
+        return version_string, short_version_string, bash_func_name
 
 
-def generate_anaconda_bash_select_func(framework_root):
-    py_version = get_python_version(framework_root)
-    py, anaconda_version_string = get_anaconda_version(py_version)
-    name, version, arch = anaconda_version_string.split(" ")
-
-    values = {
-        'path':             os.path.join(framework_root, 'bin'),
-        'install_type':     name,
-        'version':          version+arch,
-        'stripped_version': version.replace(".", ""),
-        'func_name':        name.replace(" ", "_").lower()
-    }
-
-    return """
-        select_{func_name}_{stripped_version}()
-        {{
-            echo \"Setting environment for {install_type} {version}\"
-            PATH=\"{path}:${{OLD_PATH}}\"
-            export PATH
-            export PROMPT_PYTHON_VERSION="{install_type} {version}"
-
-        }}
-                """.format(**values), anaconda_version_string
-
-def generate_bash_select_functions(outfile, framework_root, install_type, versions):
-    for v in versions:
-        print("+++ Adding {:<40} [{}]".format(install_type+" "+v, make_python_dir(framework_root, v)))
-        bash_function = generate_bash_select_func(framework_root, install_type, v)
-        outfile.write(bash_function)
-
+EXCLUDED_PATTERNS = [".*virtualenv.*", ".*pkgs.*"]
+DEFAULT_OUTFILE = os.path.expandvars("$HOME/.python_switchers.sh")
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Detects all python installations and creates bash functions to switch between them')
+    parser.add_argument('-e', '--excluded-patterns', action='append', default=EXCLUDED_PATTERNS, help="Add a pattern (regex) to exclude when looking for python installations. Use as many as needed. (default: {0})".format(EXCLUDED_PATTERNS))
+    parser.add_argument('-o', '--outfile', action='store', default=DEFAULT_OUTFILE, help="Output file for the generated shell functions (default: {0})".format("$HOME/.python_switchers.sh"))
     args = parser.parse_args()
 
-    outname = os.path.expandvars("$HOME/.python_switchers.sh")
+    print("--- Searching all installed pythons, except those that match the following patterns: {0}".format(args.excluded_patterns))
 
-    with open(outname, 'w+') as outfile:
-        system_versions = detect_system_python_installs()
-        generate_bash_select_functions(outfile,
-                                       SYSTEM_ROOT,
-                                       "System Python",
-                                       system_versions)
+    installed_pythons = detect_all_python_installs(args.excluded_patterns)
 
-        macpython_versions = detect_macpython_installs()
-        generate_bash_select_functions(outfile,
-                                       MACPYTHON_ROOT,
-                                       "MacPython",
-                                       macpython_versions)
+    print("--- Found {0} results.".format(len(installed_pythons)))
+    print("--- Saving selectors to {0}".format(args.outfile))
 
-        epd32_versions = detect_epd32_installs()
-        generate_bash_select_functions(outfile,
-                                       MACPYTHON_ROOT,
-                                       "EPD 32",
-                                       epd32_versions)
+    with open(args.outfile, 'w') as f:
+        for p in installed_pythons:
+            full_version, prompt, bash_func_name = make_version_strings(p)
+            print("--- Adding shell function to switch to {0:<50} shell function: {1:<50} (path: {2}".format(full_version, "select_"+bash_func_name+"()", p))
+            bash_func = generate_bash_select_func(p, full_version, prompt, bash_func_name)
+            f.write(bash_func)
 
-        epd64_versions = detect_epd64_installs()
-        generate_bash_select_functions(outfile,
-                                       EPD64_ROOT,
-                                       "EPD 64",
-                                       epd64_versions)
-
-        for anaconda_root in detect_anaconda_installs():
-            bash_func, version = generate_anaconda_bash_select_func(anaconda_root)
-            print("+++ Adding {:<40} [{}]".format(version, anaconda_root))
-            outfile.write(bash_func)
-
-        print "--- Saved python switcher bash functions to %s" % outname
-
+    print("--- Selectors saved. Don't forget to add 'source {0}' to your .bashrc or .zshrc file".format(args.outfile))
