@@ -1,14 +1,18 @@
 [difftool "sourcetree"]
-	cmd = /usr/local/bin/ksdiff -w \"$LOCAL\" \"$REMOTE\"
-	path = 
+  cmd = /usr/local/bin/ksdiff -w \"$LOCAL\" \"$REMOTE\"
+  path =
 
 [mergetool "sourcetree"]
-	cmd = /usr/local/bin/ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
-	trustExitCode = true
+  cmd = /usr/local/bin/ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
+  trustExitCode = true
 
 [alias]
+  # most of these are shamelessly taken from
+  # https://bitbucket.org/sjl/dotfiles/src/fb9ef461ca17394c0445235426dd9864db51f81f/gitconfig?at=default
+
   st = status
   ci = commit
+  cm = commit -m
   ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate
   ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
   lnc = log --pretty=format:"%h\\ %s\\ [%cn]"
@@ -28,19 +32,45 @@
   rh1 = reset HEAD^ --hard
   rh2 = reset HEAD^^ --hard
 
+  id = rev-parse
+  ack = log --color=always --all --topo-order --pretty='format:%Cgreen%h%Creset %s%Cred%d%Creset %C(black bold)(by %an)%Creset' --full-history -S
+  fo = fetch origin
+  fu = fetch upstream
+  tags = tag -l
+  branches = branch -a
+  remotes = remote -v
+  pull = pull --ff-only
+  currentbranch = rev-parse --abbrev-ref HEAD
+  root = rev-parse --show-toplevel
+  discard-merge = reset --hard HEAD
+  delete-local-branch = branch -D
+  delete-remote-branch = push origin --delete
+  delete-local-reference-to-remote-branch = branch -rd
+  addremove = !git add . && git add -u
+  addrem = !git addremove
+
+  ksdiff = difftool -y -t Kaleidoscope
+  ksshow = "!sh -c 'git ksdiff $1^..$1;' -"
+  sl = "!sh -c 'git show --color=always $1 | less -R' -"
+
+  find-merge = "!sh -c 'git log $1..master --merges -n1' -"
+
+  fuck-up-history-from = pull --rebase
+
 
 [user]
-	name = sevas
-	email = f.degroef@gmail.com
+  name = sevas
+  email = f.degroef@gmail.com
 
 [core]
-	excludesfile = /Users/sevas/Library/Application Support/TorusKnotSoftware/SourceTree/gitignore_default.txt
-	quotepath = false
+  excludesfile = /Users/sevas/Library/Application Support/TorusKnotSoftware/SourceTree/gitignore_default.txt
+  quotepath = false
 
 [color]
   branch = auto
   diff = auto
   status = auto
+  interactive = auto
 
 [color "branch"]
   current = yellow reverse
@@ -58,7 +88,14 @@
   changed = green
   untracked = cyan
 [difftool "Kaleidoscope"]
-	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+  cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
 [mergetool "Kaleidoscope"]
-	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
-	trustExitCode = true
+  cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
+  trustExitCode = true
+
+[web]
+  browser = open
+
+
+[include]
+  path = ~/.gitconfig_local
