@@ -114,6 +114,28 @@ select_{bash_func_name}()
 """.format(**values)
 
 
+def generate_fish_select_function(python_filepath, version_string, prompt_string, bash_function_name):
+    """Generates a shell function to monkeypatch the PATH variable and put
+       a particular python as the default one
+    """
+    values = {
+        'path':            os.path.dirname(python_filepath),
+        'version_string':  version_string,
+        'prompt_string':   prompt_string,
+        'bash_func_name':  bash_func_name
+    }
+
+    return """\
+function select_{bash_func_name}
+    printf \"Setting environment for {version_string}\"
+    set -gx PATH {path} $OLD_PATH
+    set -gx PROMPT_PYTHON_VERSION "{prompt_string}"
+end
+
+""".format(**values)
+
+
+
 def is_python_filepath(filepath):
     """Checks if a filepath corresponds to a python binary.
 
@@ -233,28 +255,36 @@ def make_version_strings(python_filepath):
         return version_string, short_version_string, bash_func_name
 
 
-EXCLUDED_PATTERNS = [".*virtualenv.*", ".*pkgs.*"]
-DEFAULT_OUTFILE = os.path.expandvars("$HOME/.python_switchers.sh")
+EXCLUDED_PATTERNS = [".*virtualenv.*", ".*pkgs.*", ".*anaconda/envs.*"]
+DEFAULT_OUTFILE_BASENAME = os.path.expandvars("$HOME/.python_switchers")
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Detects all python installations and creates bash functions to switch between them')
     parser.add_argument('-e', '--excluded-patterns', action='append', default=EXCLUDED_PATTERNS, help="Add a pattern (regex) to exclude when looking for python installations. Use as many as needed. (default: {0})".format(EXCLUDED_PATTERNS))
-    parser.add_argument('-o', '--outfile', action='store', default=DEFAULT_OUTFILE, help="Output file for the generated shell functions (default: {0})".format("$HOME/.python_switchers.sh"))
+    parser.add_argument('-o', '--outfile-basename', action='store', default=DEFAULT_OUTFILE_BASENAME, help="Output file basename, without extension, for the generated shell functions (default: {0})".format("$HOME/.python_switchers.{sh,fish}"))
     args = parser.parse_args()
 
     print("--- Searching all installed pythons, except those that match the following patterns: {0}".format(args.excluded_patterns))
 
     installed_pythons = detect_all_python_installs(args.excluded_patterns)
 
-    print("--- Found {0} results.".format(len(installed_pythons)))
-    print("--- Saving selectors to {0}".format(args.outfile))
+    print installed_pythons
 
-    with open(args.outfile, 'w') as f:
+    print("--- Found {0} results.".format(len(installed_pythons)))
+    filenames = (args.outfile_basename+ext for ext in (".sh", ".fish"))
+    shell_filename, fish_filename = filenames
+    print("--- Saving selectors to {0}".format(filenames))
+
+    with open(shell_filename, 'w') as shell_file, open(fish_filename, 'w') as fish_file:
         for p in installed_pythons:
             full_version, prompt, bash_func_name = make_version_strings(p)
             print("--- Adding shell function to switch to {0:<50} shell function: {1:<50} (path: {2}".format(full_version, "select_"+bash_func_name+"()", p))
             bash_func = generate_bash_select_func(p, full_version, prompt, bash_func_name)
-            f.write(bash_func)
+            shell_file.write(bash_func)
 
-    print("--- Selectors saved. Don't forget to add 'source {0}' to your .bashrc or .zshrc file".format(args.outfile))
+            fish_func = generate_fish_select_function(p, full_version, prompt, bash_func_name)
+            fish_file.write(fish_func)
+
+
+    print("--- Selectors saved. Don't forget to source the adequate generated file to your .bashrc, .zshrc or fish.config file".format(filenames))
