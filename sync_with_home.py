@@ -5,12 +5,11 @@ import os.path
 
 dotfiles = [".bash_profile", ".bash_pyfuncs", ".inputrc", ".pythonrc.py", ".gitconfig", ".zshrc"]
 scripts = ["update_python_switchers.py"]
-
+directories = [".config/fish"]
 
 
 def get_home_dir():
     return os.path.expandvars("$HOME")
-
 
 
 def get_bin_dir():
@@ -26,7 +25,6 @@ def copy_files(src_dir, dst_dir, files):
         shutil.copy(src, dst)
 
 
-
 def copy_dotfiles_from_home():
     home = get_home_dir()
     copy_files(home, "./", dotfiles)
@@ -37,17 +35,13 @@ def copy_scripts_from_home():
     copy_files(bin_dir, "./scripts", scripts)
 
 
-
 def copy_dotfiles_to_home():
     home = get_home_dir()
     copy_files("./", home, dotfiles)
 
-
 def copy_scripts_to_home():
     bin_dir = get_bin_dir()
     copy_files("./scripts", bin_dir, scripts)
-
-
 
 
 if __name__=="__main__":
