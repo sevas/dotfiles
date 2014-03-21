@@ -1,28 +1,35 @@
 [ui]
 username=sevas  <f.degroef@gmail.com>
-
+merge = Kaleidoscope
+logtemplate='[{phase}] {desc} ({node|short})\n'
 ignore=/Users/sevas/Library/Application Support/TorusKnotSoftware/SourceTree/hgignore_default.txt
+
 [alias]
 addrm = addremove --similarity 100
 cglog = glog --style compact
-slog = log --style=/Users/sevas/build/mercurial-cli-templates/map-cmdline.slog
-nlog = log --style=/Users/sevas/build/mercurial-cli-templates/map-cmdline.nlog
-sglog = glog --style=/Users/sevas/build/mercurial-cli-templates/map-cmdline.sglog
-dlog = log --style=/Users/sevas/build/mercurial-cli-templates/map-cmdline.dlog
+slog = log --style=/Users/sevas/.hgext/mercurial-cli-templates/map-cmdline.slog
+nlog = log --style=/Users/sevas/.hgext/mercurial-cli-templates/map-cmdline.nlog
+sglog = glog --style=/Users/sevas/.hgext/mercurial-cli-templates/map-cmdline.sglog
+dlog = log --style=/Users/sevas/.hgext/mercurial-cli-templates/map-cmdline.dlog
 
 
 [extensions]
-hgext.bookmarks =
-hggit = 
+bookmarks =
+hggit =
 hgk=
 color =
-hgext.extdiff = 
-graphlog = 
-progress = 
-rebase = 
+hgext.extdiff =
+graphlog =
+progress =
+rebase =
 transplant=
-convert = 
-hgshelve = /Users/sevas/.hgext/hgshelve/hgshelve.py
+convert =
+#hgshelve = /Users/sevas/.hgext/hgshelve/hgshelve.py
+record =
+prompt = /Users/sevas/.hgext/hg-prompt/prompt.py
+hgext.convert=
+#guestrepo = /Users/sevas/.hgext/guestrepo/guestrepo
+largefiles =
 
 [bookmarks]
 track.current = True
@@ -71,3 +78,5 @@ path=~/bin/hgk
 [diff]
 git = True
 
+[largefiles]
+minsize = 2

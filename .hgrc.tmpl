@@ -1,0 +1,38 @@
+[ui]
+logtemplate='[{phase}] {desc} ({node|short})\n'
+
+
+[alias]
+addrm = addremove --similarity 100
+cglog = glog --style compact
+slog = log --style=~/.hgext/mercurial-cli-templates/map-cmdline.slog
+nlog = log --style=~/.hgext/mercurial-cli-templates/map-cmdline.nlog
+sglog = glog --style=~/.hgext/mercurial-cli-templates/map-cmdline.sglog
+dlog = log --style=~/.hgext/mercurial-cli-templates/map-cmdline.dlog
+
+
+[extensions]
+hgext.bookmarks =
+#hggit =
+hgk=
+color =
+hgext.extdiff =
+graphlog =
+progress =
+rebase =
+transplant=
+convert =
+largefiles =
+hgshelve = ~/.hgext/hgshelve/hgshelve.py
+prompt = ~/.hgext/hg-prompt/prompt.py
+
+[bookmarks]
+track.current = True
+
+
+[hgk]
+path=~/bin/hgk
+
+[diff]
+git = True
+

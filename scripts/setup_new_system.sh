@@ -15,4 +15,10 @@ git clone https://github.com/sjl/z-fish
 
 
 
+cd ~
+cd .hgext
+hg clone https://bitbucket.org/sevas/mercurial-cli-templates
+
+
 popd
+
