@@ -1,6 +1,8 @@
 # Useful functions {{{
 
 function serve_this; python -m SimpleHTTPServer; end
+#function fabric; fab -i ~/.ssh/stevelosh $argv; end
+#function oldgcc; set -g CC /usr/bin/gcc-4.0 $argv; end
 function tm; tmux -u2 $argv; end
 function c; clear; end
 function hl; less -R; end
@@ -8,6 +10,19 @@ function paththis; set PATH (pwd) $PATH $argv; end
 function clc; ./bin/get-last-commit-url.py | pbcopy; end
 
 function swank; dtach -A /tmp/dtach-swank.sock -r winch lein ritz; end
+
+function ef; vim ~/.config/fish/config.fish; end
+function ev; vim ~/.vimrc; end
+function ed; vim ~/.vim/custom-dictionary.utf-8.add; end
+function eo; vim ~/Dropbox/Org; end
+function eh; vim ~/.hgrc; end
+function ep; vim ~/.pentadactylrc; end
+function em; vim ~/.mutt/muttrc; end
+function ez; vim ~/lib/dotfiles/zsh; end
+function ek; vim ~/lib/dotfiles/keymando/keymandorc.rb; end
+function et; vim ~/.tmux.conf; end
+function eg; vim ~/.gitconfig; end
+# function es; vim ~/.slate; end
 
 function sjoin -d "Join input lines into a single line with spaces"; tr '\n' ' '; end
 
@@ -27,16 +42,37 @@ function pj
     python -m json.tool | pygmentize -l json
 end
 
+function vup
+    set -x VAGRANT_LOG debug
+    vagrant up $argv
+    set -e VAGRANT_LOG
+end
 
 function ss; bcvi --wrap-ssh -- $argv; end
 function bcvid; dtach -A /tmp/bcvi.socket bcvi --listener; end
 
+function spotlight-off; sudo mdutil -a -i off ; and sudo mv /System/Library/CoreServices/Search.bundle/ /System/Library/CoreServices/SearchOff.bundle/ ; and killall SystemUIServer; end
+function spotlight-on; sudo mdutil -a -i on ; and sudo mv /System/Library/CoreServices/SearchOff.bundle/ /System/Library/CoreServices/Search.bundle/ ; and killall SystemUIServer; end
+function spotlight-wat; sudo fs_usage -w -f filesys mdworker | grep "open" ; end
+
+
 function h; hg $argv; end
 function g; git $argv; end
+
+function pbc; pbcopy; end
+function pbp; pbpaste; end
+function pbpb; pbp | pb; end
+
+function weechat; weechat-curses $argv; end
 
 function collapse; sed -e 's/  */ /g'; end
 function cuts; cut -d' ' $argv; end
 
+function emptytrash -d "Empty the OS X trash folders"
+    sudo rm -rfv /Volumes/*/.Trashes
+    sudo rm -rfv ~/.Trash
+    sudo rm -rfv /private/var/log/asl/*.asl
+end
 
 function urlencode
     python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);" $argv
@@ -45,6 +81,17 @@ function urldecode
     python -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])" $argv
 end
 
+function fixopenwith -d "Fix the shitty OS X Open With menu duplicates"
+    /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -kill -r -domain local -domain user
+    killall Finder
+    echo "Open With has been rebuilt, Finder will relaunch"
+end
+
+# function v; vim $argv; end
+# function V; vim . $argv; end
+
+# function vu; vagrant up; end
+# function vs; vagrant suspend; end
 
 function o; open $argv; end
 function oo; open .; end
@@ -59,12 +106,6 @@ end
 function hey_virtualbox_shut_down_or_i_will_fucking_cut_you
     VBoxManage controlvm $argv poweroff
 end
-
-# better copy function using rsync
-function cpv
-    rsync -rvhElHp --executability --stats --progress $argv
-end
-
 
 # set AG_BIN (which ag)
 # function actual_ag
