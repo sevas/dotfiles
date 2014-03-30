@@ -107,6 +107,12 @@ function hey_virtualbox_shut_down_or_i_will_fucking_cut_you
     VBoxManage controlvm $argv poweroff
 end
 
+# better copy function using rsync
+function cpv
+    rsync -rvhElHp --executability --stats --progress $argv
+end
+
+
 # set AG_BIN (which ag)
 # function actual_ag
 #     # Fuck you fish this is fucking ridiculous.  Let me use $AG_BIN as
