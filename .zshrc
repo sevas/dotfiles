@@ -1,11 +1,9 @@
-export PYTHONIOENCODING=utf-8  
+export PYTHONIOENCODING=utf-8
 # Customize to your needs...
 export PATH="/Users/sevas/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
 export DISABLE_AUTO_UPDATE="true"
 
-VIRTUAL_ENV_DISABLE_PROMPT=1
-export OLD_PATH=$PATH
-source $HOME/.python_switchers.sh
+
 
 
 # Path to your oh-my-zsh configuration.
@@ -39,9 +37,24 @@ plugins=(git virtualenvwrapper pip django brew github osx git-flow gem)
 source $ZSH/oh-my-zsh.sh
 
 
-select_epd_64_72
 
 
+export PYTHONSTARTUP=$HOME/.pythonrc.py
+
+#alias titanium="/Users/sevas/Library/Application\ Support/Titanium/mobilesdk/osx/3.1.0.GA/titanium.py"
+
+export PATH=/usr/texbin:/usr/local/Cellar/ruby/2.0.0-p195/bin:/usr/local/opt/ruby/bin:/usr/local/share/npm/bin:$PATH
+
+fpath=(~/.zsh/Completion $fpath)
+
+. ~/lib/zsh/z/z.sh
+
+
+
+VIRTUAL_ENV_DISABLE_PROMPT=1
+export OLD_PATH=$PATH
+source $HOME/.python_switchers.sh
+select_anaconda_161_x86_64
 
 
 #cdp {

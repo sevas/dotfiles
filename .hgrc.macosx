@@ -11,7 +11,7 @@ slog = log --style=/Users/sevas/.hgext/mercurial-cli-templates/map-cmdline.slog
 nlog = log --style=/Users/sevas/.hgext/mercurial-cli-templates/map-cmdline.nlog
 sglog = glog --style=/Users/sevas/.hgext/mercurial-cli-templates/map-cmdline.sglog
 dlog = log --style=/Users/sevas/.hgext/mercurial-cli-templates/map-cmdline.dlog
-
+untrack = rm -Af
 
 [extensions]
 bookmarks =

@@ -3,8 +3,8 @@ import shutil
 import os.path
 
 
-dotfiles = [".bash_profile", ".bash_pyfuncs", ".inputrc", ".pythonrc.py", ".gitconfig", ".zshrc"]
-scripts = ["update_python_switchers.py"]
+dotfiles = [".bash_profile", ".bash_pyfuncs", ".inputrc", ".pythonrc.py", ".gitconfig", ".zshrc", ".hgrc"]
+scripts = []
 directories = [".config/fish"]
 
 
